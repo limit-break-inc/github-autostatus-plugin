@@ -23,28 +23,9 @@
  */
 package org.jenkinsci.plugins.githubautostatus.notifiers;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 /**
  *
- * @author jxpearce
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class BuildStateTest {
-
-    public BuildStateTest() {
-    }
-
-    /**
-     * Test of isEnabled method, of class InfluxDbNotifier.
-     */
-    @Test
-    public void testBuildStates() {
-        assertNotNull(BuildState.Pending.toResult());
-        assertNotNull(BuildState.CompletedSuccess.toResult());
-        assertNotNull(BuildState.CompletedError.toResult());
-        assertNotNull(BuildState.SkippedFailure.toResult());
-        assertNotNull(BuildState.SkippedUnstable.toResult());
-        assertNotNull(BuildState.SkippedConditional.toResult());
-    }
 }

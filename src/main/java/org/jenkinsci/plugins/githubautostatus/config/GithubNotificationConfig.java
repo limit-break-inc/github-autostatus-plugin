@@ -21,24 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.jenkinsci.plugins.githubautostatus;
+package org.jenkinsci.plugins.githubautostatus.config;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.security.ACL;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMRevisionAction;
@@ -46,15 +38,26 @@ import jenkins.scm.api.SCMSource;
 import org.jenkinsci.plugins.github_branch_source.GitHubSCMSource;
 import org.jenkinsci.plugins.github_branch_source.PullRequestSCMHead;
 import org.jenkinsci.plugins.github_branch_source.PullRequestSCMRevision;
+import org.jenkinsci.plugins.githubautostatus.BuildStatusConfig;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
+
 /**
  * Encapsulates the logic of determining GitHub configuration for a build.
- * @author Jeff Pearce (jxpearce@godaddy.com)
+ *
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class GithubNotificationConfig {
 
@@ -68,7 +71,7 @@ public class GithubNotificationConfig {
 
     /**
      * Gets the SHA for the build
-     * 
+     *
      * @return the SHA for the build
      */
     public String getShaString() {
@@ -77,8 +80,8 @@ public class GithubNotificationConfig {
 
     /**
      * Gets the repo owner.
-     * 
-     * @return The repo owner.
+     *
+     * @return the repo owner
      */
     public String getRepoOwner() {
         return repoOwner;
@@ -86,7 +89,8 @@ public class GithubNotificationConfig {
 
     /**
      * Gets the name of the branch for the build.
-     * @return Name of the branch for the build.
+     *
+     * @return the name of the branch for the build
      */
     public String getBranchName() {
         return branchName;
@@ -94,7 +98,8 @@ public class GithubNotificationConfig {
 
     /**
      * Gets the GitHub repo for the build.
-     * @return GitHub repo for the build.
+     *
+     * @return the GitHub repo for the build
      */
     public GHRepository getRepo() {
         return repo;
@@ -102,7 +107,8 @@ public class GithubNotificationConfig {
 
     /**
      * Gets the name of the repo for the build.
-     * @return Name of the repo for the build.
+     *
+     * @return the name of the repo for the build
      */
     public String getRepoName() {
         return repoName;
@@ -110,24 +116,22 @@ public class GithubNotificationConfig {
 
     /**
      * Constructs a config object from a Run object.
-     * @param run The build.
-     * @param listener Task listener (for logging to the build).
-     * @return The github config object
+     *
+     * @param run the build
+     * @return the GitHub config object
      */
-    public static @Nullable
-    GithubNotificationConfig fromRun(Run<?, ?> run, TaskListener listener) {
-        return GithubNotificationConfig.fromRun(run, listener, new GitHubBuilder());
+    public static @Nullable GithubNotificationConfig fromRun(Run<?, ?> run) {
+        return GithubNotificationConfig.fromRun(run, new GitHubBuilder());
     }
 
     /**
-     * Constructs a config object from a Run object and GitHub builder.
-     * @param run The build.
-     * @param listener Task listener (for logging to the build).
-     * @param githubBuilder GitHub builder.
-     * @return The constructed config object.
+     * Constructs a config object from a {@link Run} object and GitHub builder.
+     *
+     * @param run the build
+     * @param githubBuilder the GitHub builder
+     * @return the constructed config object
      */
-    public static @Nullable
-    GithubNotificationConfig fromRun(Run<?, ?> run, TaskListener listener, GitHubBuilder githubBuilder) {
+    public static @Nullable GithubNotificationConfig fromRun(Run<?, ?> run, GitHubBuilder githubBuilder) {
         BuildStatusConfig buildStatusConfig = BuildStatusConfig.get();
         if (buildStatusConfig.getEnableGithub()) {
             try {
@@ -151,9 +155,10 @@ public class GithubNotificationConfig {
     }
 
     /**
-     * Extract the SHA for the build.
-     * @param build the build.
-     * @return true if SHA was extracted; false if it could not be extracted.
+     * Extracts the SHA for the build.
+     *
+     * @param build the build
+     * @return true if SHA was extracted; false if it could not be extracted
      */
     private Boolean extractCommitSha(Run<?, ?> build) {
         SCMRevisionAction scmRevisionAction = build.getAction(SCMRevisionAction.class);
@@ -171,9 +176,10 @@ public class GithubNotificationConfig {
     }
 
     /**
-     * Extract the branch info from a build.
-     * @param build The build.
-     * @return true if branch info was extracted; false otherwise.
+     * Extracts the branch info from a build.
+     *
+     * @param build the build
+     * @return true if branch info was extracted; false otherwise
      */
     private Boolean extractBranchInfo(Run<?, ?> build) {
         SCMRevisionAction scmRevisionAction = build.getAction(SCMRevisionAction.class);
@@ -192,10 +198,11 @@ public class GithubNotificationConfig {
     }
 
     /**
-     * Extract the GHRepository from a build.
-     * @param build The build.
-     * @return true if the GHRepository was extracted; false otherwise.
-     * @throws IOException 
+     * Extracts the GHRepository from a build.
+     *
+     * @param build the build
+     * @return true if the GHRepository was extracted; false otherwise
+     * @throws IOException
      */
     private Boolean extractGHRepositoryInfo(Run<?, ?> build) throws IOException {
         ItemGroup parent = build.getParent().getParent();
@@ -218,16 +225,13 @@ public class GithubNotificationConfig {
         }
         String credentialsId = gitHubScmSource.getCredentialsId();
         if (null == credentialsId) {
-            log(Level.INFO, "Could not find credentials - status will not be provided for this build");
+            log(Level.WARNING, "Could not find credentials - status will not be provided for this build");
             return false;
         }
         repoOwner = gitHubScmSource.getRepoOwner();
         repoName = gitHubScmSource.getRepository();
         String url = gitHubScmSource.getApiUri();
-        if (null == url) {
-            url = GitHubSCMSource.GITHUB_URL;
-        }
-        
+
         String userName = null;
         String password = "";
 
@@ -240,11 +244,11 @@ public class GithubNotificationConfig {
             if (stringCredentials != null) {
                 userName = stringCredentials.getId();
                 password = stringCredentials.getSecret().getPlainText();
-            } 
+            }
         }
         if (userName == null) {
-            log(Level.INFO, "Could not resolve credentials - status will not be provided for this build");
-            return false;        
+            log(Level.WARNING, "Could not resolve credentials - status will not be provided for this build");
+            return false;
         }
 
         githubBuilder = githubBuilder.withEndpoint(url);

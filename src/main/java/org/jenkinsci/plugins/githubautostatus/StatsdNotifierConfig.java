@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * Class for StatsD configuration notifier.
+ *
  * @author Shane Gearon (shane.gearon@hootsuite.com)
  */
 public class StatsdNotifierConfig {
@@ -40,58 +41,61 @@ public class StatsdNotifierConfig {
     private static final Logger LOGGER = Logger.getLogger(StatsdWrapper.class.getName());
 
     /**
-     * Gets the externalizedID.
+     * Gets the externalized id.
      *
-     * @return repo externalizedID.
+     * @return the externalized id
      */
     public String getExternalizedID() {
         return externalizedID;
     }
 
     /**
-     * Gets statsd url.
+     * Gets the StatsD URL.
      *
-     * @return statsd url.
+     * @return the StatsD URL
      */
     public String getStatsdHost() {
         return statsdHost;
     }
 
     /**
-     * Gets statsd port.
+     * Gets the StatsD port.
      *
-     * @return statsd port.
+     * @return the StatsD port
      */
     public int getStatsdPort() {
         return statsdPort;
     }
 
     /**
-     * Gets statsd bucket.
+     * Gets the StatsD bucket.
      *
-     * @return statsd bucket.
+     * @return the StatsD bucket
      */
     public String getStatsdBucket() {
         return statsdBucket;
     }
 
     /**
-     * Gets statsd max packet size.
+     * Gets the StatsD maximum packet size.
      *
-     * @return statsd max packet size.
+     * @return the StatsD maximum packet size
      */
     public String getStatsdMaxSize() {
         return statsdMaxSize;
     }
 
     /**
-     * Creates an statsd notification config based on the global settings.
+     * Creates a StatsD notification config based on the global settings.
      *
-     * @param externalizedID externalized ID.
-     * @return config.
+     * @param externalizedID externalized id
+     * @return the config
      */
     public static StatsdNotifierConfig fromGlobalConfig(String externalizedID) {
         BuildStatusConfig config = BuildStatusConfig.get();
+        if (!config.getEnableStatsd()) {
+            return null;
+        }
         StatsdNotifierConfig statsdNotifierConfig = new StatsdNotifierConfig();
 
         System.out.println(config.getStatsdHost());

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 /**
  *
- * @author jxpearce
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class TestSuiteTest {
 
@@ -50,6 +50,15 @@ public class TestSuiteTest {
         TestSuite instance = new TestSuite();
         instance.setName(mockName);
         assertEquals(mockName, instance.getName());
+    }
+
+    @Test
+    public void testGetSetDuration() {
+        float duration = 435;
+
+        TestSuite instance = new TestSuite();
+        instance.setDuration(duration);
+        assertEquals(duration, instance.getDuration(), 0);
     }
 
     @Test

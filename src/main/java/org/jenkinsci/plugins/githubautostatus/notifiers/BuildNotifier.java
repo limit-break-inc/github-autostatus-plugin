@@ -25,58 +25,69 @@ package org.jenkinsci.plugins.githubautostatus.notifiers;
 
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
+import org.jenkinsci.plugins.githubautostatus.model.BuildStage;
+
 import java.util.Map;
-import org.jenkinsci.plugins.githubautostatus.BuildStageModel;
 
 /**
  * A notification subscriber which can send build stats to a particular sink.
- * @author Jeff Pearce (jxpearce@godaddy.com)
+ *
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public abstract class BuildNotifier implements ExtensionPoint {
 
-     /**
+    /**
      * Establishing a default long for use in getLong.
      */
-     protected final long DEFAULT_LONG = 0;
- 
-     /**
-     * Establishing a default string for use in Notifiers.
-     */
-     protected final String DEFAULT_STRING = "none";
+    protected final long DEFAULT_LONG = 0;
 
     /**
-     * Determine whether notifier is enabled.
+     * Establishing a default string for use in notifiers.
+     */
+    protected final String DEFAULT_STRING = "none";
+
+    /**
+     * Determines whether this notifier is enabled.
      *
-     * @return true if enabled; false otherwise.
+     * @return true if enabled; false otherwise
      */
     abstract public boolean isEnabled();
 
     /**
-     * Send a state change with timing info
+     * Sends a state change with timing info.
      *
-     * @param jobName      the name of the job
-     * @param stageItem    stage item
+     * @param jobName the name of the job
+     * @param stageItem stage item
      */
-    abstract public void notifyBuildStageStatus(String jobName, BuildStageModel stageItem);
+    abstract public void notifyBuildStageStatus(String jobName, BuildStage stageItem);
 
     /**
-     * Send a notification when the job is complete
+     * Sends a notification when a job is complete.
      *
-     * @param buildState      state indicating success or failure
-     * @param parameters      build parameters
+     * @param buildState state indicating success or failure
+     * @param parameters build parameters
      */
-    abstract public void notifyFinalBuildStatus(BuildState buildState, Map<String, Object> parameters);
+    abstract public void notifyFinalBuildStatus(BuildStage.State buildState, Map<String, Object> parameters);
+
+    /**
+     * Get whether the notifier wants to know about errors that happen outside of a stage.
+     *
+     * @return whether the notifier wants to know about errors that happen outside of a stage
+     */
+    public boolean wantsOutOfStageErrors() {
+        return false;
+    }
 
     public static ExtensionList<BuildNotifier> all() {
         return ExtensionList.lookup(BuildNotifier.class);
     }
 
     public long getLong(Map<String, Object> map, String mapKey) {
-     Object mapValue = map.get(mapKey);
-     
-     if (mapValue != null) {
-         return (long)mapValue;
-     }
-     return DEFAULT_LONG;
- }
+        Object mapValue = map.get(mapKey);
+
+        if (mapValue != null) {
+            return (long) mapValue;
+        }
+        return DEFAULT_LONG;
+    }
 }

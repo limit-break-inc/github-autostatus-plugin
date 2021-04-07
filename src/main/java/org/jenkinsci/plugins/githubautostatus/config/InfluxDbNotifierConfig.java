@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.jenkinsci.plugins.githubautostatus;
+package org.jenkinsci.plugins.githubautostatus.config;
 
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,15 +32,19 @@ import java.net.URLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.jenkinsci.plugins.githubautostatus.BuildStatusConfig;
+import org.jenkinsci.plugins.githubautostatus.notifiers.InfluxDbNotifierSchemas;
 
 /**
- * Encapsulates the logic of determining influxdb configuration for a build.
- * @author Jeff Pearce (jxpearce@godaddy.com)
+ * Encapsulates the logic of determining InfluxDB configuration for a build.
+ *
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
-public class InfluxDbNotifierConfig {
+public class InfluxDbNotifierConfig extends AbstractNotifierConfig {
 
     private String repoOwner;
     private String repoName;
@@ -47,14 +52,15 @@ public class InfluxDbNotifierConfig {
     private String influxDbUrlString;
     private String influxDbDatabase;
     private String influxDbCredentialsId;
-    private String influxDbUser;
-    private String influxDbPassword;
     private String influxDbRetentionPolicy;
+    private boolean ignoreSendingTestCoverageToInflux;
+    private boolean ignoreSendingTestResultsToInflux;
+    private Integer schemaVersion;
 
     /**
      * Gets the repo owner.
      *
-     * @return repo owner.
+     * @return the repo owner
      */
     public String getRepoOwner() {
         return repoOwner;
@@ -63,7 +69,7 @@ public class InfluxDbNotifierConfig {
     /**
      * Gets the repo name.
      *
-     * @return repo name.
+     * @return the repo name
      */
     public String getRepoName() {
         return repoName;
@@ -72,25 +78,32 @@ public class InfluxDbNotifierConfig {
     /**
      * Gets the branch name.
      *
-     * @return branch name.
+     * @return the branch name
      */
     public String getBranchName() {
         return branchName;
     }
 
     /**
-     * Gets influx db url.
+     * Gets the InfluxDB URL.
      *
-     * @return influx db url.
+     * @return the InfluxDB URL
      */
     public String getInfluxDbUrlString() {
         return influxDbUrlString;
     }
 
+    public Integer getDbVersion() {
+        if (schemaVersion == null || schemaVersion <= 0 || schemaVersion > InfluxDbNotifierSchemas.getSchemaCount()) {
+            return InfluxDbNotifierSchemas.getSchemaCount();
+        }
+        return schemaVersion;
+    }
+
     /**
-     * Determines if influx db url is reachable.
+     * Determines if InfluxDB is reachable.
      *
-     * @return true if url is reachable; false otherwise.
+     * @return true if URL is reachable; false otherwise
      */
     public Boolean influxDbIsReachable() {
         try {
@@ -112,51 +125,74 @@ public class InfluxDbNotifierConfig {
     }
 
     /**
-     * Gets an http client that can be used to make requests.
+     * Gets an HTTP client that can be used to make requests.
      *
-     * @return http client.
+     * @return the HTTP client
      */
     public CloseableHttpClient getHttpClient() {
         return HttpClients.createDefault();
     }
 
     /**
-     * Gets the influx db to write to.
+     * Gets the InfluxDB database to write to.
      *
-     * @return influx db.
+     * @return the InfluxDB database
      */
     public String getInfluxDbDatabase() {
         return influxDbDatabase;
     }
 
     /**
-     * Returns credentials for calling influxdb if they are configured.
-     * @return credentials; null if not provided.
+     * Returns the credentials for calling InfluxDB if they are configured.
+     *
+     * @return the credentials; null if not provided.
      */
     @CheckForNull
     public UsernamePasswordCredentials getCredentials() {
         return !StringUtils.isEmpty(influxDbCredentialsId) ?
-            BuildStatusConfig.getCredentials(UsernamePasswordCredentials.class, 
-                    influxDbCredentialsId) :
-            null;
+                BuildStatusConfig.getCredentials(UsernamePasswordCredentials.class,
+                        influxDbCredentialsId) :
+                null;
     }
-    
+
     /**
      * Gets the optional retention policy.
      *
-     * @return retention policy.
+     * @return the retention policy
      */
     public String getInfluxDbRetentionPolicy() {
         return influxDbRetentionPolicy;
     }
 
+    public InfluxDbNotifierSchemas.SchemaInfo getSchema() {
+        return InfluxDbNotifierSchemas.getSchema(getDbVersion() - 1);
+    }
+
     /**
-     * Creates an influxdb notification config based on the global settings.
+     * Gets whether to ignore sending test coverage to InfluxDB.
      *
-     * @param repoOwner repo owner.
-     * @param repoName repo name.
-     * @param branchName branch name.
-     * @return config.
+     * @return Whether to ignore sending test coverage to InfluxDB
+     */
+    public boolean getIgnoreSendingTestCoverageToInflux() {
+        return ignoreSendingTestCoverageToInflux;
+    }
+
+    /**
+     * Gets whether to ignore sending test results to InfluxDB.
+     *
+     * @return whether to ignore sending test results to InfluxDB
+     */
+    public boolean getIgnoreSendingTestResultsToInflux() {
+        return ignoreSendingTestResultsToInflux;
+    }
+
+    /**
+     * Creates an InfluxDB notification config based on the global settings.
+     *
+     * @param repoOwner  repo owner
+     * @param repoName   repo name
+     * @param branchName branch name
+     * @return config
      */
     public static InfluxDbNotifierConfig fromGlobalConfig(String repoOwner, String repoName, String branchName) {
         BuildStatusConfig config = BuildStatusConfig.get();
@@ -172,6 +208,9 @@ public class InfluxDbNotifierConfig {
             influxDbNotifierConfig.influxDbDatabase = config.getInfluxDbDatabase();
             influxDbNotifierConfig.influxDbCredentialsId = config.getCredentialsId();
             influxDbNotifierConfig.influxDbRetentionPolicy = config.getInfluxDbRetentionPolicy();
+            influxDbNotifierConfig.ignoreSendingTestCoverageToInflux = config.getIgnoreSendingTestCoverageToInflux();
+            influxDbNotifierConfig.ignoreSendingTestResultsToInflux = config.getIgnoreSendingTestResultsToInflux();
+            influxDbNotifierConfig.schemaVersion = config.getDbVersion();
         }
 
         return influxDbNotifierConfig;

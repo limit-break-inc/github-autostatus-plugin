@@ -23,31 +23,46 @@
  */
 package org.jenkinsci.plugins.githubautostatus.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  *
- * @author jxpearce
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class TestSuite {
 
     private String name;
     private ArrayList<TestCase> testCases;
+    private float duration;
 
+    @SerializedName("passed")
     private int passedTestCaseCount;
+    @SerializedName("skipped")
     private int skippedTestCaseCount;
+    @SerializedName("failed")
     private int failedTestCaseCount;
 
     public TestSuite() {
         testCases = new ArrayList<>();
     }
-    
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public float getDuration() {
+        return duration;
+    }
+
+    public void setDuration(float duration) {
+        this.duration = duration;
     }
 
     public ArrayList<TestCase> getTestCases() {
@@ -83,5 +98,23 @@ public class TestSuite {
 
     public void setFailedTestCaseCount(int failedTestCaseCount) {
         this.failedTestCaseCount = failedTestCaseCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TestSuite)) return false;
+        TestSuite suite = (TestSuite) o;
+        return getPassedTestCaseCount() == suite.getPassedTestCaseCount() &&
+                getSkippedTestCaseCount() == suite.getSkippedTestCaseCount() &&
+                getFailedTestCaseCount() == suite.getFailedTestCaseCount() &&
+                Objects.equals(getName(), suite.getName()) &&
+                Objects.equals(getTestCases(), suite.getTestCases()) &&
+                Objects.equals(getDuration(), suite.getDuration());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getTestCases(), getDuration(), getPassedTestCaseCount(), getSkippedTestCaseCount(), getFailedTestCaseCount());
     }
 }

@@ -27,32 +27,35 @@ import hudson.model.InvisibleAction;
 
 /**
  * Keeps track of time a job was spent in the blocked state.
- * @author Jeff Pearce (jxpearce@godaddy.com)
+ *
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class BuildBlockedAction extends InvisibleAction {
-    
+
     private long timeStartBlocked;
     private long timeReleased;
 
     public BuildBlockedAction() {
         this.timeStartBlocked = System.currentTimeMillis();
     }
-    
+
     public BuildBlockedAction(long timeStartBlocked) {
         this.timeStartBlocked = timeStartBlocked;
     }
 
     /**
      * Gets the time the item was released.
-     * @return the time the item was released.
+     *
+     * @return the time the item was released
      */
     public long getTimeReleased() {
         return timeReleased;
     }
 
     /**
-     * SEts the time the item was released.
-     * @param timeReleased the time the item was released.
+     * Sets the time the item was released.
+     *
+     * @param timeReleased the time the item was released
      */
     public void setTimeReleased(long timeReleased) {
         this.timeReleased = timeReleased;
@@ -60,10 +63,10 @@ public class BuildBlockedAction extends InvisibleAction {
 
     /**
      * Gets the amount of time the item spent blocked.
-     * @return the amount of time blocked, in milliseconds.
+     *
+     * @return the amount of time blocked, in milliseconds
      */
     public long getTimeBlocked() {
         return timeReleased - timeStartBlocked;
     }
-
 }

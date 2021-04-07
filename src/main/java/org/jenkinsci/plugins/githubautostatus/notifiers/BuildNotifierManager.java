@@ -23,18 +23,20 @@
  */
 package org.jenkinsci.plugins.githubautostatus.notifiers;
 
+import org.jenkinsci.plugins.githubautostatus.StatsdNotifierConfig;
+import org.jenkinsci.plugins.githubautostatus.config.GithubNotificationConfig;
+import org.jenkinsci.plugins.githubautostatus.config.HttpNotifierConfig;
+import org.jenkinsci.plugins.githubautostatus.config.InfluxDbNotifierConfig;
+import org.jenkinsci.plugins.githubautostatus.model.BuildStage;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.jenkinsci.plugins.githubautostatus.BuildStageModel;
-import org.jenkinsci.plugins.githubautostatus.GithubNotificationConfig;
-import org.jenkinsci.plugins.githubautostatus.InfluxDbNotifierConfig;
-import org.jenkinsci.plugins.githubautostatus.StatsdNotifierConfig;
 
 /**
- * Manages send build notifications to one or more notifiers
+ * Manages send build notifications to one or more notifiers.
  *
- * @author Jeff Pearce (jxpearce@godaddy.com)
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 public class BuildNotifierManager {
 
@@ -43,19 +45,23 @@ public class BuildNotifierManager {
 
     List<BuildNotifier> notifiers = new ArrayList<>();
 
+    public static BuildNotifierManager newInstance(String jobName, String targetUrl) {
+        return new BuildNotifierManager(jobName, targetUrl);
+    }
+
     /**
-     * Constructs a BuildNotifierManager
+     * Constructs a {@link BuildNotifierManager}.
      *
      * @param jobName the job notifications are for
      * @param targetUrl link back to Jenkins
      */
-    public BuildNotifierManager(String jobName, String targetUrl) {
+    private BuildNotifierManager(String jobName, String targetUrl) {
         this.jobName = jobName;
         this.targetUrl = targetUrl;
     }
 
     /**
-     * Adds a GitHub repository for notifications
+     * Adds a GitHub repository for notifications.
      *
      * @param config GitHub notification configuration
      * @return the notifier which was added
@@ -66,24 +72,35 @@ public class BuildNotifierManager {
     }
 
     /**
-     * Adds an influx DB notifier
+     * Adds an InfluxDB notifier.
      *
-     * @param influxDbNotifierConfig influx db notification configuration
-     * @return The notifier object which was added
+     * @param influxDbNotifierConfig InfluxDB notification configuration
+     * @return the notifier which was added
      */
     public BuildNotifier addInfluxDbNotifier(InfluxDbNotifierConfig influxDbNotifierConfig) {
         InfluxDbNotifier buildNotifier = new InfluxDbNotifier(influxDbNotifierConfig);
         return addBuildNotifier(buildNotifier);
     }
-    public BuildNotifier addGenericNofifier(BuildNotifier buildNotifier) {
+
+    /**
+     * Adds an HTTP notifier.
+     *
+     * @param httpNotifierConfig HTTP notification configuration
+     * @return the notifier which was added
+     */
+    public BuildNotifier addHttpNotifier(HttpNotifierConfig httpNotifierConfig) {
+        return addBuildNotifier(new HttpNotifier((httpNotifierConfig)));
+    }
+
+    public BuildNotifier addGenericNotifier(BuildNotifier buildNotifier) {
         return addBuildNotifier(buildNotifier);
     }
 
     /**
-     * Adds an Statsd notifier
+     * Adds a StatsD notifier.
      *
-     * @param statsdNotifierConfig Statsd notification configuration
-     * @return the notifier object configured for Statsd
+     * @param statsdNotifierConfig StatsD notification configuration
+     * @return the notifier which was added
      */
     public BuildNotifier addStatsdBuildNotifier(StatsdNotifierConfig statsdNotifierConfig) {
         StatsdNotifier buildNotifier = new StatsdNotifier(statsdNotifierConfig);
@@ -91,7 +108,7 @@ public class BuildNotifierManager {
     }
 
     /**
-     * Adds a notifier if it's enabled
+     * Adds a notifier if it's enabled.
      *
      * @param notifier notifier to add
      * @return notifier if added; null if not
@@ -105,23 +122,23 @@ public class BuildNotifierManager {
     }
 
     /**
-     * Send stage status notification
+     * Sends stage status notification.
      *
      * @param stageItem stage item
      */
-    public void notifyBuildStageStatus(BuildStageModel stageItem) {
+    public void notifyBuildStageStatus(BuildStage stageItem) {
         notifiers.forEach((notifier) -> {
             notifier.notifyBuildStageStatus(jobName, stageItem);
         });
     }
 
     /**
-     * Send overall build status notification
+     * Sends overall build status notification.
      *
      * @param buildState the build status
      * @param parameters build parameters
      */
-    public void notifyFinalBuildStatus(BuildState buildState, Map<String, Object> parameters) {
+    public void notifyFinalBuildStatus(BuildStage.State buildState, Map<String, Object> parameters) {
         notifiers.forEach((notifier) -> {
             notifier.notifyFinalBuildStatus(buildState, parameters);
         });
@@ -134,9 +151,11 @@ public class BuildNotifierManager {
      *
      * @param stageItem stage item
      */
-    public void sendNonStageError(BuildStageModel stageItem) {
+    public void sendNonStageError(BuildStage stageItem) {
         notifiers.forEach((notifier) -> {
-            notifier.notifyBuildStageStatus(jobName, stageItem);
+            if (notifier.wantsOutOfStageErrors()) {
+                notifier.notifyBuildStageStatus(jobName, stageItem);
+            }
         });
     }
 }

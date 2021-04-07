@@ -38,7 +38,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  *
- * @author jxpearce
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ SuiteResult.class,TestResult.class })
@@ -74,7 +74,7 @@ public class TestResultsTest {
     @Test
     public void testGetSetTestSuites() {
         TestResults testSuite = new TestResults();
-        ArrayList<TestSuite> testSuites = new ArrayList();
+        ArrayList<TestSuite> testSuites = new ArrayList<>();
         testSuite.setTestSuites(testSuites);
         assertEquals(testSuites, testSuite.getTestSuites());
     }

@@ -21,27 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.jenkinsci.plugins.githubautostatus;
+package org.jenkinsci.plugins.githubautostatus.config;
 
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
+import org.jenkinsci.plugins.githubautostatus.BuildStatusConfig;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  *
- * @author jxpearce
+ * @author Jeff Pearce (GitHub jeffpearce)
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BuildStatusConfig.class})
@@ -49,7 +51,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class InfluxDbNotifierConfigTest {
 
     private BuildStatusConfig config;
-    private final String repositoryOwner = "mock-pwner";
+    private final String repositoryOwner = "mock-owner";
     private final String repository = "mock-repo";
     private final String branch = "mock-branch";
     private final String influxUrl = "http://qwerqwerqwerqwrqwerqwrwqrqwqwer";
@@ -58,6 +60,8 @@ public class InfluxDbNotifierConfigTest {
     private final String influxDbUser = "mock-user";
     private final String influxDbPassword = "mock-password";
     private final String influxDbRetention = "mock-retention-policy";
+    private final boolean ignoreSendingTestCoverageToInflux = false;
+    private final boolean ignoreSendingTestResultsToInflux = false;
 
     public InfluxDbNotifierConfigTest() {
     }
@@ -73,6 +77,8 @@ public class InfluxDbNotifierConfigTest {
         when(config.getInfluxDbDatabase()).thenReturn(influxDatabase);
         when(config.getCredentialsId()).thenReturn(influxDbCredentialsId);
         when(config.getInfluxDbRetentionPolicy()).thenReturn(influxDbRetention);
+        when(config.getIgnoreSendingTestCoverageToInflux()).thenReturn(ignoreSendingTestCoverageToInflux);
+        when(config.getIgnoreSendingTestResultsToInflux()).thenReturn(ignoreSendingTestResultsToInflux);
     }
 
     @Test
@@ -145,17 +151,24 @@ public class InfluxDbNotifierConfigTest {
     }
 
     @Test
+    public void testGetIgnoreSendingTestCoverageToInflux() {
+        InfluxDbNotifierConfig instance
+                = InfluxDbNotifierConfig.fromGlobalConfig("", "", branch);
+        assertEquals(ignoreSendingTestResultsToInflux, instance.getIgnoreSendingTestCoverageToInflux());
+    }
+
+    @Test
+    public void testGetIgnoreSendingTestResultsToInflux() {
+        InfluxDbNotifierConfig instance
+                = InfluxDbNotifierConfig.fromGlobalConfig("", "", branch);
+        assertEquals(ignoreSendingTestResultsToInflux, instance.getIgnoreSendingTestResultsToInflux());
+    }
+
+    @Test
     public void testGetInfluxDbRetentionPolicy() {
         InfluxDbNotifierConfig instance
                 = InfluxDbNotifierConfig.fromGlobalConfig("", "", branch);
         assertEquals(influxDbRetention, instance.getInfluxDbRetentionPolicy());
-    }
-
-    @Test
-    public void testGetHttpClient() {
-        InfluxDbNotifierConfig instance
-                = InfluxDbNotifierConfig.fromGlobalConfig("", "", branch);
-        assertNotNull(instance.getHttpClient());
     }
 
     @Test

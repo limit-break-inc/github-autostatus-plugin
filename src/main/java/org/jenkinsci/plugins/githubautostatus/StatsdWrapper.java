@@ -23,33 +23,23 @@
  */
 package org.jenkinsci.plugins.githubautostatus;
 
-import com.timgroup.statsd.NonBlockingStatsDClient;
-import com.timgroup.statsd.StatsDClient;
-import com.timgroup.statsd.StatsDClientException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
-
 /**
- * Wraps regular UDP based Statd client with concurrent hostname refreshing logic.
- * 
+ * Wraps regular UDP based StatsD client with concurrent hostname refreshing logic.
+ *
  * @author Tom Hadlaw (thomas.hadlaw@hootsuite.com)
  */
 public interface StatsdWrapper {
     /**
-     * Runs a Statsd increment in a safe way.
-     * 
-     * @param key    the bucket key
+     * Runs a StatsD increment in a safe way.
+     *
+     * @param key the bucket key
      * @param amount amount to increment
      */
     void increment(String key, int amount);
 
     /**
-     * Run a Statsd timer state in a safe way.
-     * 
+     * Runs a StatsD timer state in a safe way.
+     *
      * @param key the bucket key
      * @param duration the duration
      */
